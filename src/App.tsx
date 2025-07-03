@@ -9,14 +9,14 @@ function App() {
   console.log(isAuthenticated, "test");
   return (
     <BrowserRouter>
-      {isAuthenticated && (
+      {isAuthenticated ? <AppRoutes />: (
         <div className="flex">
           <div className='w-full'>
             <AppRoutes />
             <RefreshTokenModal warningTime={120} />
           </div>
         </div>
-      ) }
+      )}
     </BrowserRouter>
   );
 }
