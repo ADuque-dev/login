@@ -16,8 +16,6 @@ import AuthRecovery from "./Password/AuthRecovery";
 import { useAuthStore } from "../../storage/authStore";
 
 const userTypes = [
-  { label: "Usuario", value: "user" },
-  { label: "Conductor", value: "driver" },
   { label: "Administrador", value: "admin" },
   { label: "Corporativo", value: "corporate" },
   { label: "Partner", value: "partner" },
