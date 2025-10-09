@@ -1,5 +1,5 @@
-import React, { useState, forwardRef } from "react";
-import { Backspace } from "@phosphor-icons/react";
+import { BackspaceIcon } from "@phosphor-icons/react";
+import React, { useState, } from "react";
 import { UseFormRegister, FieldError } from "react-hook-form";
 
 interface CountryCode {
@@ -33,27 +33,23 @@ const defaultCountryCodes: CountryCode[] = [
   { code: "+56", flag: "🇨🇱" },
 ];
 
-const FloatingLabelInput = forwardRef<HTMLInputElement, FloatingLabelInputProps>(
-  (
-    {
-      id,
-      label,
-      type = "text",
-      placeholder = "",
-      register,
-      className = "",
-      withPrefix = false,
-      countryCodes = defaultCountryCodes,
-      withClear = false,
-      onClear,
-      error,
-      borderError = false,
-      onChange,
-      value,
-      backgroundLabel
-    },
-    ref
-  ) => {
+const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
+  id,
+  label,
+  type = "text",
+  placeholder = "",
+  register,
+  className = "",
+  withPrefix = false,
+  countryCodes = defaultCountryCodes,
+  withClear = false,
+  onClear,
+  error,
+  borderError = false,
+  onChange,
+  value,
+  backgroundLabel
+}) => {
     const [selectedCode, setSelectedCode] = useState(countryCodes[0]?.code || "");
 
     const handleClear = () => {
@@ -102,12 +98,11 @@ const FloatingLabelInput = forwardRef<HTMLInputElement, FloatingLabelInputProps>
               id={id}
               type={type}
               value={value}
-              {...(register ? register(id, { onChange }) : { onChange })}
+              {...(register ? register(id) : { onChange })}
               className={`w-full px-2 py-2 rounded-lg ${backgroundLabel && backgroundLabel} ${
                 withClear ? "pr-8" : ""
               } ${className} ${hasError ? "text-red-500" : ""}`}
               placeholder={placeholder}
-              ref={ref}
             />
 
             {withClear && (
@@ -116,7 +111,7 @@ const FloatingLabelInput = forwardRef<HTMLInputElement, FloatingLabelInputProps>
                 onClick={handleClear}
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                <Backspace className="h-4 w-4" />
+                <BackspaceIcon className="h-4 w-4" />
               </button>
             )}
           </div>
@@ -124,9 +119,6 @@ const FloatingLabelInput = forwardRef<HTMLInputElement, FloatingLabelInputProps>
         {error && <p className="mt-1 text-sm text-red-500">{error.message}</p>}
       </div>
     );
-  }
-);
-
-FloatingLabelInput.displayName = "FloatingLabelInput";
+};
 
 export default FloatingLabelInput;

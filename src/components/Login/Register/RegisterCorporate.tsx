@@ -1,6 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Eye, EyeSlash, CameraPlus, FileArrowUp } from "@phosphor-icons/react";
+import { CameraPlusIcon, EyeIcon, EyeSlashIcon, FileArrowUpIcon } from "@phosphor-icons/react";
 import LogoLogin from "../../../assets/svg/Login/Group_14.svg";
 import BottomLeftImagePassword from "../../../assets/svg/AuthRecovery/Group_726_left.svg";
 import DocumentViewer from "../../Global/ModalViewDocument/DocumentViewer";
@@ -14,22 +14,37 @@ import {
 import { registerCorporate } from "../../../services/registerCorporate/service";
 import { showTailwindAlert } from "../../Global/Alerts/AlertBasic";
 import { useNavigate } from 'react-router-dom';
+import { getCountryCityList } from "../../../services/cityList/service";
+import CustomDropdown from "../../Global/Inputs/CustomDropdown";
+import ConfirmationModal from "../../Global/Modals/ConfirmationModal";
+import StatusModal from "../../Global/Modals/StatusModal";
 
 const RegisterCorporate = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
     watch,
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: defaultLoginValues,
+    mode: "onSubmit",
   });
 
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
+  const [countries, setCountries] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+  
+  const selectedCountry = watch("country") || "";
+  const selectedCity = watch("city") || "";
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [formDataToSubmit, setFormDataToSubmit] = useState<FormData | null>(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusType, setStatusType] = useState<'success' | 'error'>('success');
 
   const [files, setFiles] = useState({
     logo: null as File | null,
@@ -38,13 +53,38 @@ const RegisterCorporate = () => {
     documentUrl: "",
   });
 
-  const password = watch("password");
-  const isPasswordValid =
-    password &&
-    /[A-Z]/.test(password) &&
-    /[a-z]/.test(password) &&
-    /[@$!%*?&]/.test(password) &&
-    password.length >= 6;
+  useEffect(() => {
+    const loadCountries = async () => {
+      const data = await getCountryCityList();
+      if (data?.success) {
+        setCountries(data.country_list);
+      }
+    };
+    loadCountries();
+  }, []);
+
+  const handleCountryChange = (countryName: string) => {
+    setValue("country", countryName);
+    setValue("city", "");
+    const country = countries.find(c => c.countryname === countryName);
+    setCities(country?.city_list || []);
+  };
+
+  const handleCityChange = (cityName: string) => {
+    setValue("city", cityName);
+  };
+
+  const countryOptions = countries.map(country => ({
+    value: country.countryname,
+    label: country.countryname
+  }));
+
+  const cityOptions = cities.map(city => ({
+    value: city.cityname,
+    label: city.cityname
+  }));
+
+
 
   const handleFileChange = (
     type: "logo" | "document",
@@ -97,7 +137,7 @@ const RegisterCorporate = () => {
     }
   };
 
-  const onSubmit = async (data: RegisterFormValues) => {
+  const onSubmit = (data: RegisterFormValues) => {
     const formDataToSend = new FormData();
     (Object.entries(data) as [keyof RegisterFormValues, string][]).forEach(
       ([key, value]) => {
@@ -110,17 +150,29 @@ const RegisterCorporate = () => {
     if (files.document instanceof File) {
       formDataToSend.append("document", files.document, files.document.name);
     }
+    
+    setFormDataToSubmit(formDataToSend);
+    setShowConfirmModal(true);
+  };
 
-    const response = await registerCorporate(formDataToSend);
+  const handleConfirmSubmit = async () => {
+    if (!formDataToSubmit) return;
+    
+    setShowConfirmModal(false);
+    const response = await registerCorporate(formDataToSubmit);
     if (response?.status === 201) {
-      showTailwindAlert({
-        message: "Usuario corporativo registrado con éxito, pronto será validado",
-        type: "success",
-      });
-      navigate("/login");
+      setStatusType('success');
+      setShowStatusModal(true);
     } else {
-      const message = response?.data?.message || "Ocurrió un error inesperado";
-      showTailwindAlert({ message, type: "error" });
+      setStatusType('error');
+      setShowStatusModal(true);
+    }
+  };
+
+  const handleStatusModalClose = () => {
+    setShowStatusModal(false);
+    if (statusType === 'success') {
+      navigate("/login");
     }
   };
 
@@ -166,7 +218,7 @@ const RegisterCorporate = () => {
                 >
                   <span>Agregar</span>
                   <div className="w-[40px] h-[40px] ml-2 flex items-center justify-center rounded-[4px] bg-gray-200">
-                    <CameraPlus
+                    <CameraPlusIcon
                       size={18}
                       className="text-[#25215F]"
                       weight="bold"
@@ -204,7 +256,7 @@ const RegisterCorporate = () => {
                       onClick={() => documentInputRef.current?.click()}
                       className="w-[40px] h-[40px] flex items-center justify-center rounded-[4px] bg-gray-200 hover:bg-gray-300"
                     >
-                      <FileArrowUp
+                      <FileArrowUpIcon
                         size={18}
                         className="text-[#25215F]"
                         weight="bold"
@@ -215,7 +267,7 @@ const RegisterCorporate = () => {
                       onClick={handleViewDocument}
                       className="w-[40px] h-[40px] flex items-center justify-center rounded-[4px] bg-gray-200 hover:bg-gray-300"
                     >
-                      <Eye
+                      <EyeIcon
                         size={18}
                         className="text-[#25215F]"
                         weight="bold"
@@ -265,7 +317,7 @@ const RegisterCorporate = () => {
               </label>
               <div className="flex border rounded-lg overflow-hidden h-[75px] items-center">
                 <select
-                  {...register("countryCode", { required: true })}
+                  {...register("countryCode")}
                   className="px-3 border-2 m-3 border-[#00BBB4] rounded-lg focus:outline-none bg-white appearance-none h-[29px]"
                 >
                   <option value="+58">🇻🇪 +58</option>
@@ -274,7 +326,7 @@ const RegisterCorporate = () => {
                 </select>
                 <input
                   type="tel"
-                  {...register("phone", { required: "Teléfono es requerido" })}
+                  {...register("phone")}
                   className={`flex-1 px-4 py-2 focus:outline-none h-[29px] w-full ml-[-10px] ${
                     errors.phone ? "border-red-500" : ""
                   }`}
@@ -289,21 +341,22 @@ const RegisterCorporate = () => {
             </div>
 
             <div className="flex flex-col md:flex-row gap-4">
-              <FloatingLabelInput
-                id="country"
+              <CustomDropdown
                 label="País"
-                type="text"
-                register={register}
+                options={countryOptions}
+                value={selectedCountry}
+                onChange={handleCountryChange}
                 placeholder="País"
-                error={errors.country}
+                error={errors.country?.message}
               />
-              <FloatingLabelInput
-                id="city"
+              <CustomDropdown
                 label="Ciudad"
-                type="text"
-                register={register}
+                options={cityOptions}
+                value={selectedCity}
+                onChange={handleCityChange}
                 placeholder="Ciudad"
-                error={errors.city}
+                disabled={!selectedCountry}
+                error={errors.city?.message}
               />
             </div>
 
@@ -327,10 +380,7 @@ const RegisterCorporate = () => {
                   {...register("password")}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none pr-10 ${
                     errors.password
-                      ? "border-red-500"
-                      : isPasswordValid
-                      ? "border-green-500"
-                      : "border-gray-300"
+                      &&"border-red-500"
                   }`}
                 />
                 <button
@@ -339,9 +389,9 @@ const RegisterCorporate = () => {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2"
                 >
                   {showPassword ? (
-                    <Eye size={20} className="text-gray-500" />
+                    <EyeIcon size={20} className="text-gray-500" />
                   ) : (
-                    <EyeSlash size={20} className="text-gray-500" />
+                    <EyeSlashIcon size={20} className="text-gray-500" />
                   )}
                 </button>
               </div>
@@ -373,6 +423,24 @@ const RegisterCorporate = () => {
           className="absolute bottom-0 left-0 w-[80px] md:w-[100px] h-auto md:opacity-100"
         />
       </div>
+      
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmSubmit}
+        title="Confirmar creación de usuario"
+        message="Tus datos serán revisados y validados por el área administrativa antes de activar tu cuenta."
+      />
+      
+      <StatusModal
+        isOpen={showStatusModal}
+        onClose={handleStatusModalClose}
+        type={statusType}
+        title={statusType === 'success' ? 'Usuario registrado' : 'Ups! Error al registrar el usuario'}
+        message={statusType === 'success' 
+          ? 'Tu registro ha sido exitoso. Pronto serás contactado.' 
+          : 'Ocurrió un problema durante el registro. Inténtalo nuevamente.'}
+      />
     </div>
   );
 };
