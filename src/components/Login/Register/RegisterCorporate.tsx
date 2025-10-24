@@ -12,7 +12,6 @@ import {
   RegisterFormValues,
 } from "../Register/type";
 import { registerCorporate } from "../../../services/registerCorporate/service";
-import { showTailwindAlert } from "../../Global/Alerts/AlertBasic";
 import { useNavigate } from 'react-router-dom';
 import { getCountryCityList } from "../../../services/cityList/service";
 import CustomDropdown from "../../Global/Inputs/CustomDropdown";

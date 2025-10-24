@@ -190,29 +190,31 @@ export function Login() {
                 )}
               </div>
 
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  {...register("password")}
-                  className={`w-full px-4 pt-5 pb-2 border rounded-lg peer ${
-                    errors.password ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder="Password"
-                />
-                <label className="absolute -top-2 left-3 bg-white px-1 text-gray-600 text-sm">
-                  Clave
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                >
-                  {showPassword ? (
-                    <Eye className="w-5 h-5 text-gray-400" />
-                  ) : (
-                    <EyeSlash className="w-5 h-5 text-gray-400" />
-                  )}
-                </button>
+              <div>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    {...register("password")}
+                    className={`w-full px-4 pt-5 pb-2 border rounded-lg peer ${
+                      errors.password ? "border-red-500" : "border-gray-300"
+                    }`}
+                    placeholder="Password"
+                  />
+                  <label className="absolute -top-2 left-3 bg-white px-1 text-gray-600 text-sm">
+                    Clave
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                  >
+                    {showPassword ? (
+                      <Eye className="w-5 h-5 text-gray-400" />
+                    ) : (
+                      <EyeSlash className="w-5 h-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
                 {errors.password && !errors.root && (
                   <p className="mt-1 text-sm text-red-500">
                     {errors.password.message}
